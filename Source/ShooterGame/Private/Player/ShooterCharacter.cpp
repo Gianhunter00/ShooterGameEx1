@@ -64,7 +64,6 @@ AShooterCharacter::AShooterCharacter(const FObjectInitializer& ObjectInitializer
 	bWantsToRun = false;
 	bWantsToFire = false;
 	LowHealthPercentage = 0.5f;
-
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 }
@@ -884,6 +883,9 @@ void AShooterCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AShooterCharacter::OnStartRunning);
 	PlayerInputComponent->BindAction("RunToggle", IE_Pressed, this, &AShooterCharacter::OnStartRunningToggle);
 	PlayerInputComponent->BindAction("Run", IE_Released, this, &AShooterCharacter::OnStopRunning);
+
+	PlayerInputComponent->BindAction("Teleport", IE_Pressed, this, &AShooterCharacter::OnStartTeleport);
+	PlayerInputComponent->BindAction("Teleport", IE_Released, this, &AShooterCharacter::OnStopTeleport);
 }
 
 
@@ -1055,6 +1057,16 @@ void AShooterCharacter::OnStartRunningToggle()
 void AShooterCharacter::OnStopRunning()
 {
 	SetRunning(false, false);
+}
+
+void AShooterCharacter::OnStartTeleport()
+{
+	Cast<UShooterCharacterMovement>(GetCharacterMovement())->SetTeleport(true);
+}
+
+void AShooterCharacter::OnStopTeleport()
+{
+	Cast<UShooterCharacterMovement>(GetCharacterMovement())->SetTeleport(false);
 }
 
 bool AShooterCharacter::IsRunning() const

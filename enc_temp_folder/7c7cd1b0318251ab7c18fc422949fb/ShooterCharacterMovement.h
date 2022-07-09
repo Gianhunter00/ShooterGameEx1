@@ -50,55 +50,25 @@ class UShooterCharacterMovement : public UCharacterMovementComponent
 		friend class FSavedMove_ShooterCharacter;
 
 public:
-
-	/** Distance of the teleport */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Character Movement", Meta = (AllowPrivateAcces = "true"))
 	float TeleportDistance = 500.0f;
-
-	/** Base cooldown for the teleport ability */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Character Movement", Meta = (AllowPrivateAccess = "true"))
 	float TeleportCooldown = 0.5f;
-
 public:
-
 	virtual float GetMaxSpeed() const override;
-
-	/** Set the TeleportKeyDown to bTeleport
-	 * @param bTeleport bool to set the TeleportKeyDown
-	 */
 	void SetTeleport(bool bTeleport);
-
-	/** Teleport the chracter based on TeleportDistance */
 	void Teleport();
-
-	/** Check if CurrentTeleportCooldown has elapsed
-	 * @return True if CurrentTeleportCooldown is less than 0 otherwise it substract the deltatime to CurrentTeleportCooldown and then return false
-	 */
 	bool CanTeleport();
-
-	/** Reset CurrentTeleportCooldown to TeleportCooldown value */
 	void ResetTeleportTimer();
 
-	/** Override version of UpdateFromCompressedFlags to add custom ability */
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
-
-	/** Override version of GetPredictionData_Client to return custom FNetworkPredictionData_ShooterClient
-	 * @return Custom FNetworkPredictionData_ShooterClient that includes custom ability
-	 */
 	virtual FNetworkPredictionData_Client* GetPredictionData_Client() const override;
-
-	/** Override TickComponent to use custom ability client side and make a prediction */
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
-
-	/* If True the flags will be saved to send to the client the will to Teleport */
+	/*If true try to teleport Player to the new location*/
 	uint8 WantsToTeleport : 1;
-
-	/** Setted by SetTeleport() */
 	bool TeleportKeyDown = false;
-
-	/** Cooldown timer used for CanTeleport() */
 	float CurrentTeleportCooldown = 0.0f;
 };
 

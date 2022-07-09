@@ -40,6 +40,7 @@ public class ShooterGame : ModuleRules
 
         PrivateDependencyModuleNames.AddRange(
 			new string[] {
+				"Engine",
 				"InputCore",
 				"Slate",
 				"SlateCore",
@@ -50,8 +51,7 @@ public class ShooterGame : ModuleRules
 				"PakFile",
 				"RHI",
 				"PhysicsCore",
-				"GameplayCameras",
-				"Engine"
+				"GameplayCameras"
 			}
 		);
 

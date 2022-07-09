@@ -201,6 +201,12 @@ class AShooterCharacter : public ACharacter
 	/** player released run action */
 	void OnStopRunning();
 
+	/** player pressed teleport action */
+	void OnStartTeleport();
+
+	/** player released teleport action */
+	void OnStopTeleport();
+
 	//////////////////////////////////////////////////////////////////////////
 	// Reading data
 
@@ -398,7 +404,6 @@ private:
 	// Damage & death
 
 public:
-
 	/** Identifies if pawn is in its dying state */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health)
 	uint32 bIsDying : 1;
