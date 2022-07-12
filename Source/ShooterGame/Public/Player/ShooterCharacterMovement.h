@@ -62,22 +62,46 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shooter Character Movement", Meta = (AllowPrivateAccess = "true"))
 	float TeleportCooldown = 1.0f;
 
-	// The player's velocity while wall running
+	/** The player's velocity while wall running */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter Character Movement|Wall Running", Meta = (AllowPrivateAccess = "true"))
 	float WallRunSpeed = 700.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter Character Movement|Wall Running", Meta = (AllowPrivateAccess = "true"))
-	float WallRunTargetGravity = 0.25f;
-
+	/** WallRun Jumping force for the X and Y */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter Character Movement|Wall Running", Meta = (AllowPrivateAccess = "true"))
 	float WallRunOffJumpForceXY = 300.0f;
 
+	/** WallRun Jumping force for the Z */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter Character Movement|Wall Running", Meta = (AllowPrivateAccess = "true"))
 	float WallRunOffJumpForceZ = 800.0f;
 
+	/** WallRun Cooldown time after finishing a WallRun, called from EndWallRun() */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter Character Movement|Wall Running", Meta = (AllowPrivateAccess = "true"))
+	float WallRunCooldownAfterFall = 0.35f;
+
+	/** Max time to WallRun before ending it */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter Character Movement|Wall Running", Meta = (AllowPrivateAccess = "true"))
+	float WallRunTimeMax = 3.0f;
+
+	/** Offset on Z when performing raycast to check if next to a Wall */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "My Character Movement|Wall Running", Meta = (AllowPrivateAccess = "true"))
 	float LineTraceVerticalTolerance = 50.0f;
 
+	/** Wall Jumping force for the X */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter Character Movement|Wall Jump", Meta = (AllowPrivateAccess = "true"))
+	float WallJumpOffJumpForceX = 400.0f;
+
+	/** Wall Jumping force for the X */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter Character Movement|Wall Jump", Meta = (AllowPrivateAccess = "true"))
+	float WallJumpOffJumpForceY = 400.0f;
+
+	/** Wall Jumping force for the Z */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter Character Movement|Wall Jump", Meta = (AllowPrivateAccess = "true"))
+	float WallJumpOffJumpForceZ = 500.0f;
+
+	/** Wall Jumping force for the Z */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Shooter Character Movement|Wall Jump", 
+		Meta = (ToolTip = "0 is full side force, 90 is full forward force", ClampMin = 0, ClampMax = 90, AllowPrivateAccess = "true"))
+	float WallJumpDirection = 30.0f;
 
 protected:
 	virtual void BeginPlay() override;
@@ -85,6 +109,17 @@ protected:
 
 public:
 
+	/** Added to the ActorOnHit during BeginPlay */
+	UFUNCTION()
+	void OnActorHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
+
+	/** Start the WallRun */
+	UFUNCTION(BlueprintCallable, Category = "Custom Character Movement")
+	bool BeginWallRun();
+
+	/** End the WallRun and reset all */
+	UFUNCTION(BlueprintCallable, Category = "Custom Character Movement")
+	void EndWallRun();
 
 	virtual float GetMaxSpeed() const override;
 
@@ -93,9 +128,12 @@ public:
 	 */
 	void SetTeleportKeyDown(bool bTeleport);
 
+	/** Set the WallJumpKeyDown to bWallJump
+	 * @param bWallJump bool to set the WallJumpKeyDown
+	 */
 	void SetWallJumpKeyDown(bool bWallJump);
 
-	/** Teleport the chracter based on TeleportDistance */
+	/** Teleport the character based on TeleportDistance */
 	void Teleport();
 
 	/** Check if CurrentTeleportCooldown has elapsed
@@ -117,59 +155,68 @@ public:
 	/** Override TickComponent to use custom ability client side and make a prediction */
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	/** Override ProcessLanded, added WallRun control */
 	virtual void ProcessLanded(const FHitResult& Hit, float RemainingTime, int32 Iterations) override;
-
-	void WallRunUpdate();
-
-	void WallRunEndVectors(FVector& Right, FVector& Left) const;
-
-	bool WallRunMovement(FVector StartLineTrace, FVector& EndLineTrace, float InWallRunDirection);
-
-	bool IsValidWallRunVector(const FVector& InVector) const;
 
 	FVector ForwardVelocityOnWall(const float InWallRunDirection) const;
 
-	void WallRunEnd();
-
+	/** Start the cooldown for the wall run, Cooldown time is equal to WallRunCooldownAfterFall */
 	void StartWallRunCooldown();
 
+	/** When the timer ends it enable WallRun again with this function */
 	void ReEnableWallRunAfterCooldown();
 
+	/** Calls CameraTilt based on which side of the wall we are running */
 	void CameraTick() const;
 
+	/** Twist the roll of the Controller to have more vision during WallRun */
 	void CameraTilt(const float TargetXRoll) const;
 
+	/** Jump during a WallRun, it use WallRunOffJumpForceXY and WallRunOffJumpForceZ */
 	void WallRunJump();
 
+	/** Check if you can WallRun Jump */
 	bool CanWallRunJump() const;
 
+	/** Override OnMovementModeChanged to constrain character to not fall on Z and reset it when no WallRunning */
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
+	/** Override to call our PhysWallRunning if Mode is CMOVE_WallRunning */
 	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
 
-	UFUNCTION()
-	void OnActorHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit);
-
+	/** WallRunning Physics function */
 	void PhysWallRunning(float deltaTime, int32 Iterations);
-	UFUNCTION(BlueprintCallable, Category = "Custom Character Movement")
-		bool BeginWallRun();
-	// Ends the character's wall run
-	UFUNCTION(BlueprintCallable, Category = "Custom Character Movement")
-		void EndWallRun();
-	// Returns true if the required wall run keys are currently down
-	bool AreRequiredWallRunKeysDown() const;
-	// Returns true if the player is next to a wall that can be wall ran
-	bool IsNextToWall(float vertical_tolerance = 0.0f);
-	// Finds the wall run direction and side based on the specified surface normal
-	void FindWallRunDirectionAndSide(const FVector& surface_normal, FVector& direction, EWallRunSide& side) const;
-	// Helper function that returns true if the specified surface normal can be wall ran on
-	bool CanSurfaceBeWallRan(const FVector& surface_normal) const;
-	// Returns true if the movement mode is custom and matches the provided custom movement mode
-	bool IsCustomMovementMode(uint8 custom_movement_mode) const;
+
+	/** Check if you can WallRun
+	 * @return True if WallRunKey is down and WallRun is not on cooldown otherwise False
+	 */
+	bool CanWallRun() const;
+
+	/** Returns true if the player is next to a wall that can be wall ran */
+	bool IsNextToWall(const float VerticalTolerance = 0.0f);
+
+	/** Finds the wall run direction and side based on the specified surface normal
+	 * @param SurfaceNormal Normal of the Wall
+	 * @param Direction Will be set after calculation using SurfaceNormal
+	 * @param Side Wall be set after calculation using SurfaceNormal
+	 */
+	void FindWallRunDirectionAndSide(const FVector& SurfaceNormal, FVector& Direction, EWallRunSide& Side) const;
+
+	/** Check if the Wall normal can be ran
+	 * @param SurfaceNormal Normal of the Wall
+	 * @return True if the specified surface normal can be wall ran on, otherwise False
+	 */
+	bool CanSurfaceBeWallRan(const FVector& SurfaceNormal) const;
+
+	/** Check if the CustomMovementMode is the one passed
+	 * @param InCustomMovementMode Custom Mode to check
+	 * @return True if MovementMode is set to Custom and CustomMovementMode is equal to InCustomMovementMode otherwise False
+	 */
+	bool IsCustomMovementMode(const uint8 InCustomMovementMode) const;
 
 private:
 
-	/* If True the flags will be saved to send to the client the will to Teleport */
+	/* If True the flags will be saved for the CompressedFlags */
 	uint8 WantsToTeleport : 1;
 
 	/** Setted by SetTeleport() */
@@ -178,31 +225,37 @@ private:
 	/** Cooldown timer used for CanTeleport() */
 	float CurrentTeleportCooldown = 0.0f;
 
-	float DefaultGravity = 0.0f;
-
+	/** Normal of the Wall to WallRun */
 	FVector WallRunNormal;
 
-	bool IsWallRunning = false;
-
-	bool IsWallRunningR = false;
-
-	bool IsWallRunningL = false;
-
+	/** True if WallRun is on cooldown otherwise false */
 	bool IsWallRunOnCooldown = false;
 
-	FTimerHandle WallRunTimerHandle;
+	/** Timer Handle for the WallRunCooldown */
+	FTimerHandle WallRunCooldownTimerHandle;
 
+	/** Setted by SetWallJumpKeyDown() */
 	bool WallJumpKeyDown = false;
 
+	/** if True the flags will be saved for the CompressedFlags */
 	uint8 WantsToWallJump : 1;
 
+	/** if true the flags will be saved for the CompressedFlags */
 	uint8 WantsToWallRun : 1;
 
+	/** Has to be set using the CanWallRun() function */
 	bool WallRunKeyDown = false;
 
-	// The direction the character is currently wall running in
+	/** The direction the character is currently wall running in */
 	FVector WallRunDirection;
-	// The side of the wall the player is running on.
-	EWallRunSide WallRunSide;
+
+	/** The side of the wall the player hit */
+	EWallRunSide WallSide;
+
+	/** Timer Handle for the WallRun Max Time */
+	FTimerHandle WallRunTimerHandle;
+
+	/** Normal of the plane hit (point outside), change WallJumpDirection to adjust the vector */
+	FVector WallJumpNormal;
 };
 
