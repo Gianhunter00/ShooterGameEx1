@@ -1061,12 +1061,12 @@ void AShooterCharacter::OnStopRunning()
 
 void AShooterCharacter::OnStartTeleport()
 {
-	Cast<UShooterCharacterMovement>(GetCharacterMovement())->SetTeleport(true);
+	Cast<UShooterCharacterMovement>(GetCharacterMovement())->SetTeleportKeyDown(true);
 }
 
 void AShooterCharacter::OnStopTeleport()
 {
-	Cast<UShooterCharacterMovement>(GetCharacterMovement())->SetTeleport(false);
+	Cast<UShooterCharacterMovement>(GetCharacterMovement())->SetTeleportKeyDown(false);
 }
 
 bool AShooterCharacter::IsRunning() const
@@ -1167,12 +1167,14 @@ void AShooterCharacter::OnStartJump()
 	AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
 	if (MyPC && MyPC->IsGameInputAllowed())
 	{
+		Cast<UShooterCharacterMovement>(GetCharacterMovement())->SetWallJumpKeyDown(true);
 		bPressedJump = true;
 	}
 }
 
 void AShooterCharacter::OnStopJump()
 {
+	Cast<UShooterCharacterMovement>(GetCharacterMovement())->SetWallJumpKeyDown(false);
 	bPressedJump = false;
 	StopJumping();
 }
