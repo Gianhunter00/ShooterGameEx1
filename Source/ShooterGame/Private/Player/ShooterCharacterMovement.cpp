@@ -48,9 +48,13 @@ bool UShooterCharacterMovement::CanWallRun() const
 	UInputSettings::GetInputSettings()->GetActionMappingByName("Run", SprintKeysMapping);
 	for (const FInputActionKeyMapping& SprintKeyMapping : SprintKeysMapping)
 	{
-		if (GetPawnOwner()->GetController<APlayerController>()->IsInputKeyDown(SprintKeyMapping.Key))
+		const AShooterPlayerController* MyPC = GetPawnOwner()->GetController<AShooterPlayerController>();
+		if (MyPC && MyPC->IsGameInputAllowed())
 		{
-			return true;
+			if (MyPC->IsInputKeyDown(SprintKeyMapping.Key))
+			{
+				return true;
+			}
 		}
 	}
 
