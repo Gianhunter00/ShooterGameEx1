@@ -324,7 +324,13 @@ void UShooterCharacterMovement::PhysWallRunning(float deltaTime, int32 Iteration
 
 	const FVector Adjusted = Velocity * deltaTime;
 	FHitResult Hit(1.f);
-	SafeMoveUpdatedComponent(Adjusted, UpdatedComponent->GetComponentQuat(), true, Hit);
+	if(!SafeMoveUpdatedComponent(Adjusted, UpdatedComponent->GetComponentQuat(), true, Hit))
+	{
+		if (!SafeMoveUpdatedComponent(Adjusted, UpdatedComponent->GetComponentQuat(), true, Hit))
+		{
+			EndWallRun();
+		}
+	}
 }
 
 void UShooterCharacterMovement::ProcessLanded(const FHitResult& Hit, float RemainingTime, int32 Iterations)
