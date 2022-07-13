@@ -9,6 +9,7 @@
 #include "Animation/AnimInstance.h"
 #include "Sound/SoundNodeLocalPlayer.h"
 #include "AudioThread.h"
+#include "ECustomMovementMode.h"
 
 static int32 NetVisualizeRelevancyTestPoints = 0;
 FAutoConsoleVariableRef CVarNetVisualizeRelevancyTestPoints(
@@ -1167,7 +1168,12 @@ void AShooterCharacter::OnStartJump()
 	AShooterPlayerController* MyPC = Cast<AShooterPlayerController>(Controller);
 	if (MyPC && MyPC->IsGameInputAllowed())
 	{
-		Cast<UShooterCharacterMovement>(GetCharacterMovement())->SetWallJumpKeyDown(true);
+		UShooterCharacterMovement* MyShoterCM = Cast<UShooterCharacterMovement>(GetCharacterMovement());
+		if (MyShoterCM->MovementMode == EMovementMode::MOVE_Falling ||
+			MyShoterCM->IsCustomMovementMode(ECustomMovementMode::CMOVE_WallRunning))
+		{
+			MyShoterCM->SetWallJumpKeyDown(true);
+		}
 		bPressedJump = true;
 	}
 }

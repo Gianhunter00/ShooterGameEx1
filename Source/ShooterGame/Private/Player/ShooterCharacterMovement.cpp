@@ -40,7 +40,9 @@ void UShooterCharacterMovement::EndWallRun()
 bool UShooterCharacterMovement::CanWallRun() const
 {
 	if (GetPawnOwner()->IsLocallyControlled() == false || IsWallRunOnCooldown == true)
+	{
 		return false;
+	}
 
 	TArray<FInputActionKeyMapping> SprintKeysMapping;
 	UInputSettings::GetInputSettings()->GetActionMappingByName("Run", SprintKeysMapping);
@@ -326,10 +328,7 @@ void UShooterCharacterMovement::PhysWallRunning(float deltaTime, int32 Iteration
 	FHitResult Hit(1.f);
 	if(!SafeMoveUpdatedComponent(Adjusted, UpdatedComponent->GetComponentQuat(), true, Hit))
 	{
-		if (!SafeMoveUpdatedComponent(Adjusted, UpdatedComponent->GetComponentQuat(), true, Hit))
-		{
-			EndWallRun();
-		}
+		EndWallRun();
 	}
 }
 
@@ -366,17 +365,18 @@ void UShooterCharacterMovement::ReEnableWallRunAfterCooldown()
 
 void UShooterCharacterMovement::CameraTick() const
 {
+	if(!IsCustomMovementMode(ECustomMovementMode::CMOVE_WallRunning) || WallSide == EWallRunSide::kNone)
+	{
+		CameraTilt(0.0f);
+		return;
+	}
 	if(WallSide == EWallRunSide::kRight)
 	{
 		CameraTilt(15.0f);
 	}
-	else if(WallSide == EWallRunSide::kLeft)
-	{
-		CameraTilt(-15.0f);
-	}
 	else
 	{
-		CameraTilt(0.0f);
+		CameraTilt(-15.0f);
 	}
 }
 
